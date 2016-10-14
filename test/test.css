@@ -1,0 +1,152 @@
+/* Task list defaults */
+.gactualstartdate,
+.gactualenddate,
+.gstartdate,
+.genddate {
+    height: 18px;
+    white-space: nowrap;
+    border: #efefef 1px solid;
+}
+
+/* Additional values for some task list elements */
+.gactualstartdate,
+.gactualstartdate div,
+.gstartdate div, /* needed for IE8 */
+.gstartdate {
+    text-align: center;
+    min-width: 70px;
+    max-width: 70px;
+    width: 70px;
+    font-size: 10px;
+}
+
+.gactualenddate div,
+.gactualenddate,
+.genddate div, /* needed for IE8 */
+.genddate {
+    text-align: center;
+    min-width: 70px;
+    max-width: 70px;
+    width: 70px;
+    font-size: 10px;
+}
+
+
+/*customize:*/
+.gactualstartdate,
+.gactualenddate,
+.gstartdate,
+.genddate {
+    min-width: 100px;
+    max-width: 100px;
+}
+
+.gactualenddate div,
+.gactualstartdate div,
+.gstartdate div,
+.genddate div {
+    min-width: 100px;
+    max-width: 100px;
+}
+
+.gtaskname div, .gtaskname {
+    min-width: 120px;
+    max-width: 120px;
+    width: 120px;
+}
+
+.gtaskheading, .gname, .gtaskname, .gresource, .gduration, .gpccomplete, .gstartdate, .genddate .gactualstartdate, .gactualenddate {
+    height: 26px;
+}
+
+.gmajorheading, .gminorheading, .gminorheadingwkend, .gtaskcell, .gtaskcellwkend {
+    height: 26px;
+}
+
+.ggroupitem {
+    background-color: #f5f5f5;
+}
+
+.gresource {
+    display: none;
+}
+
+.gtaskcelldiv {
+    height: 100%;
+}
+
+.gtaskbarcontainer.actualBar {
+    top: 12px;
+}
+
+.itemBar {
+    height: 7px;
+    background: #7b7b7b;
+    margin-top: 2px;
+}
+
+.endpointleft {
+    overflow: hidden;
+    width: 0px;
+    height: 0px;
+    top: 2px;
+    border-top: 4px solid #7b7b7b;
+    border-left: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+    border-right: 4px solid transparent;
+    float: left;
+}
+
+.endpointright {
+    overflow: hidden;
+    width: 0px;
+    height: 0px;
+    top: 2px;
+    border-top: 4px solid #7b7b7b;
+    border-left: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+    border-right: 4px solid transparent;
+    float: right;
+}
+
+.taskBar {
+    height: 8px;
+    margin-top: 3px;
+    background-color: #bbbbbb;
+}
+
+.actualBar .taskBar {
+    background-color: #1976d2;
+}
+
+.actualBar .endpointleft {
+    border-top: 4px solid #000;
+}
+
+.actualBar .endpointright {
+    border-top: 4px solid #000;
+}
+
+.actualBar .itemBar {
+    background: #000;
+}
+
+.gtaskcellwkend, .gminorheadingwkend {
+    background-color: #f5f5f5;
+}
+
+.gTaskInfo {
+    width: 200px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    opacity: 0.9;
+}
+
+div.gtaskbarcontainer.milestoneContainer {
+    top: 3px;
+}
+
+
