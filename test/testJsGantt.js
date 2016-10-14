@@ -749,13 +749,10 @@ JSGantt.GanttChart=function(pDiv, pFormat)
 
     var vMinDate = null;
     var vMaxDate = null;
-    var vTaskLeftPx = 0;
-    var vTaskRightPx = 0;
     var vNumCols = 0;
     var vNumRows = 0;
     var vSingleCell = false;
     var vID = 0;
-    var vDateRow = null;
     var vColWidth = null;
 
     this.Draw = function ()
@@ -1039,18 +1036,6 @@ JSGantt.GanttChart=function(pDiv, pFormat)
             }
         }
 
-        // DRAW the date format selector at bottom left.
-        vTmpRow=this.newNode(vTmpTBody, 'tr');
-        this.newNode(vTmpRow, 'td', null, 'gtasklist', '\u00A0');
-        vTmpCell=this.newNode(vTmpRow, 'td', null, 'gspanning gtaskname');
-        vTmpCell.appendChild(this.drawSelector('bottom'));
-        if(vShowRes==1)this.newNode(vTmpRow, 'td', null, 'gspanning gresource', '\u00A0');
-        if(vShowDur==1)this.newNode(vTmpRow, 'td', null, 'gspanning gduration', '\u00A0');
-        if(vShowComp==1)this.newNode(vTmpRow, 'td', null, 'gspanning gpccomplete', '\u00A0');
-        if(vShowStartDate==1)this.newNode(vTmpRow, 'td', null, 'gspanning gstartdate', '\u00A0');
-        if(vShowEndDate==1)this.newNode(vTmpRow, 'td', null, 'gspanning genddate', '\u00A0');
-        if(vShowStartDate==1)this.newNode(vTmpRow, 'td', null, 'gspanning gactualstartdate', '\u00A0');
-        if(vShowEndDate==1)this.newNode(vTmpRow, 'td', null, 'gspanning gactualenddate', '\u00A0');
         // Add some white space so the vertical scroll distance should always be greater
         // than for the right pane (keep to a minimum as it is seen in unconstrained height designs)
         this.newNode(vTmpDiv2, 'br');
@@ -1068,6 +1053,7 @@ JSGantt.GanttChart=function(pDiv, pFormat)
         var vTmpDate = new Date();
         var vCellContents;
         var vTmpCell;
+        var vTaskLeftPx;
 
         var vRightHeader=document.createDocumentFragment();
 
@@ -1221,7 +1207,6 @@ JSGantt.GanttChart=function(pDiv, pFormat)
                 vTmpDate.setDate(vTmpDate.getDate()+1);
             }
         }
-        vDateRow=vTmpRow;
 
         vTaskLeftPx=(vNumCols *(vColWidth+1))+1;
 
@@ -1236,6 +1221,7 @@ JSGantt.GanttChart=function(pDiv, pFormat)
         var vTmpDiv;
         var vTmpTable;
         var vTmpTBody;
+        var vTaskLeftPx =(vNumCols *(vColWidth+1))+1;
 
         var vRightTable=document.createDocumentFragment();
 
@@ -1250,8 +1236,6 @@ JSGantt.GanttChart=function(pDiv, pFormat)
         for(var i=0; i<vTaskList.length; i++) {
             this.draw_bar(vTmpTBody, vTaskList[i]);
         }
-
-        if(!vSingleCell) vTmpTBody.appendChild(vDateRow.cloneNode(true));
 
         return vRightTable;
     };
