@@ -30,6 +30,7 @@
 
 .is-selected .pika-button {
     border-radius: 2px;
+    color: #fff;
 }
 
 .is-inrange .pika-button {
@@ -61,3 +62,4 @@ input[id^="datepicker_"]:hover,
 input[id^="datepicker_"]:focus {
     outline: none;
 }
+

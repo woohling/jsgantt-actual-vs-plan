@@ -1028,7 +1028,6 @@ JSGantt.GanttChart=function(pDiv, pFormat)
 			vTmpTBody=this.newNode(vTmpTab, 'tbody');
 
 			// Draw each row
-
 			var i=0;
 			var j=0;
 			for(i=0; i<vTaskList.length; i++)
