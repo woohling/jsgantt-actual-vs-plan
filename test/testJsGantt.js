@@ -385,6 +385,13 @@ JSGantt.GanttChart=function(pDiv, pFormat)
     var vChartTable=null;
     var vLines=null;
     var vTimer=20;
+    var pikday_i18n_ch = {
+        previousMonth : '上个月',
+        nextMonth     : '下个月',
+        months        : ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'],
+        weekdays      : ['周一','周二','周三','周四','周五','周六','周日'],
+        weekdaysShort : ['周一','周二','周三','周四','周五','周六','周日']
+    };
 
     this.setUseFade=function(pVal){vUseFade=pVal;};
     this.setUseMove=function(pVal){vUseMove=pVal;};
@@ -761,7 +768,6 @@ JSGantt.GanttChart=function(pDiv, pFormat)
         var vLeftTable = null;
         var vRightHeader = null;
         var vRightTable = null;
-
         var vTmpDiv;
         var vTmpDiv2;
 
@@ -793,11 +799,15 @@ JSGantt.GanttChart=function(pDiv, pFormat)
         vTmpDiv.appendChild(vLeftHeader);
         vTmpDiv.appendChild(vRightTable);
         vTmpDiv.appendChild(vLeftTable);
+
+        //hide unnecessary data:
+
         this.newNode(vTmpDiv, 'div', null, 'ggridfooter');
         vTmpDiv2=this.newNode(this.getChartBody(), 'div', vDivId+'Lines', 'glinediv');
         vTmpDiv2.style.visibility='hidden';
         this.setLines(vTmpDiv2);
-        initPikDay(this);
+
+        initAllPikDay(this);
         /* Quick hack to show the generated HTML on older browsers - add a '/' to the begining of this line to activate
          var tmpGenSrc=document.createElement('textarea');
          tmpGenSrc.appendChild(document.createTextNode(vTmpDiv.innerHTML));
@@ -830,51 +840,61 @@ JSGantt.GanttChart=function(pDiv, pFormat)
         else vTodayPx=-1;
         this.DrawDependencies();
 
-        function initPikDay(that) {
+        function initAllPikDay(that) {
             var self = that;
-            var i18n_ch = {
-                previousMonth : '上个月',
-                nextMonth     : '下个月',
-                months        : ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'],
-                weekdays      : ['周一','周二','周三','周四','周五','周六','周日'],
-                weekdaysShort : ['周一','周二','周三','周四','周五','周六','周日']
-            };
 
             for (var i=0; i<vTaskList.length; i++) {
                 if (vTaskList[i].getGroup() == 0) {
-                    pikDay(vTaskList[i], vTaskList[i].getStart(), vTaskList[i].getID(), 'planstart');
-                    pikDay(vTaskList[i], vTaskList[i].getEnd(), vTaskList[i].getID(), 'planend');
-                    pikDay(vTaskList[i], vTaskList[i].getActualStart(),vTaskList[i].getID(), 'actualstart');
-                    pikDay(vTaskList[i], vTaskList[i].getActualEnd(),vTaskList[i].getID(), 'actualend');
+                    self.initPikDay(vTaskList[i], vTaskList[i].getStart(), 'gstartdate', self);
+                    self.initPikDay(vTaskList[i], vTaskList[i].getEnd(), 'genddate', self);
+                    self.initPikDay(vTaskList[i], vTaskList[i].getActualStart(), 'gactualstartdate', self);
+                    self.initPikDay(vTaskList[i], vTaskList[i].getActualEnd(), 'gactualenddate', self);
                 }
             }
+        }
+    };
 
-            function pikDay(task, date, taskId, idString) {
-                var initDate = date ? new Date(date) : null;
-                var id = 'datepicker_' + idString + '_' + taskId;
-                var picker = new Pikaday({
-                    field: document.getElementById(id),
-                    defaultDate: initDate,
-                    i18n: i18n_ch,
-                    onSelect: function (date) {
-                        onSelect(task, date, idString);
-                    }
-                });
+    this.initPikDay = function (task, date, dateString, self) {
+        var taskId = task.getID();
+        var initDate = date ? new Date(date) : null;
+        var id = 'datepicker_' + dateString + '_' + taskId;
+        var picker = new Pikaday({
+            field: document.getElementById(id),
+            defaultDate: initDate,
+            i18n: pikday_i18n_ch,
+            onSelect: function (date) {
+                onSelect(task, date, dateString);
             }
+        });
 
-            function onSelect(task, date, dateString) {
-                if (dateString === 'planstart') {
-                    task.setStart(date);
-                } else if (dateString === 'planend') {
+        function onSelect(task, date, dateString) {
+            if (dateString === 'gstartdate') {
+                task.setStart(date);
+                if (date.getTime() > task.getEnd().getTime()) {
                     task.setEnd(date);
-                } else if (dateString === 'actualstart') {
-                    task.setActualStart(date);
-                } else if (dateString === 'actualend') {
-                    task.setActualEnd(date);
+                    self.update_chart_date(task, task.getID(), 'genddate', date);
                 }
-                self.redraw_parent_bar(task, date, dateString);
-                self.redraw_bar(task);
+            } else if (dateString === 'genddate') {
+                task.setEnd(date);
+                if (date.getTime() < task.getStart().getTime()) {
+                    task.setStart(date);
+                    self.update_chart_date(task, task.getID(), 'gstartdate', date);
+                }
+            } else if (dateString === 'gactualstartdate') {
+                task.setActualStart(date);
+                if (task.getActualEnd() && task.getActualEnd().getTime() < date.getTime()) {
+                    task.setActualEnd(date);
+                    self.update_chart_date(task, task.getID(), 'gactualenddate', date);
+                }
+            } else if (dateString === 'gactualenddate') {
+                task.setActualEnd(date);
+                if (task.getActualStart() && task.getActualStart().getTime() > date.getTime()) {
+                    task.setActualStart(date);
+                    self.update_chart_date(task, task.getID(), 'gactualstartdate', date);
+                }
             }
+            self.redraw_bar(task);
+            self.redraw_parent_bar(task, date, dateString);
         }
     };
 
@@ -982,57 +1002,25 @@ JSGantt.GanttChart=function(pDiv, pFormat)
                 if(vShowStartDate==1)
                 {
                     vTmpCell=this.newNode(vTmpRow, 'td', null, 'gstartdate');
-                    datePicker = drawDatePicker(vTaskList[i], 'planstart');
-                    dateNode = datePicker.node;
-                    dateId = datePicker.id;
-                    dateText = JSGantt.formatDateStr(vTaskList[i].getStart(), vDateTaskTableDisplayFormat, vLangs[vLang]);
-                    vTmpDiv=this.newNode(vTmpCell, dateNode, dateId, null, dateText, null, null, null, null, ['value', dateText]);
+                    vTmpDiv = this.draw_datepicker(vTaskList[i], 'gstartdate', vTaskList[i].getStart(), vTmpCell);
                 }
                 if(vShowEndDate==1)
                 {
                     vTmpCell=this.newNode(vTmpRow, 'td', null, 'genddate');
-                    datePicker = drawDatePicker(vTaskList[i], 'planend');
-                    dateNode = datePicker.node;
-                    dateId = datePicker.id;
-                    dateText = JSGantt.formatDateStr(vTaskList[i].getEnd(), vDateTaskTableDisplayFormat, vLangs[vLang]);
-                    vTmpDiv=this.newNode(vTmpCell, dateNode, dateId, null, dateText, null, null, null, null, ['value', dateText]);
+                    vTmpDiv = this.draw_datepicker(vTaskList[i], 'genddate', vTaskList[i].getEnd(), vTmpCell);
                 }
                 //show actual start and end
                 if(vShowStartDate==1)
                 {
                     vTmpCell=this.newNode(vTmpRow, 'td', null, 'gactualstartdate');
-                    dateText = JSGantt.formatDateStr(vTaskList[i].getActualStart(), vDateTaskTableDisplayFormat, vLangs[vLang]);
-                    datePicker = drawDatePicker(vTaskList[i], 'actualstart');
-                    dateNode = datePicker.node;
-                    dateId = datePicker.id;
-                    vTmpDiv=this.newNode(vTmpCell, dateNode, dateId, null, dateText,  null, null, null, null, ['value', dateText]);
+                    vTmpDiv = this.draw_datepicker(vTaskList[i], 'gactualstartdate', vTaskList[i].getActualStart(), vTmpCell);
                 }
                 if(vShowEndDate==1)
                 {
                     vTmpCell=this.newNode(vTmpRow, 'td', null, 'gactualenddate');
-                    datePicker = drawDatePicker(vTaskList[i], 'actualend');
-                    dateNode = datePicker.node;
-                    dateId = datePicker.id;
-                    dateText = JSGantt.formatDateStr(vTaskList[i].getActualEnd(), vDateTaskTableDisplayFormat, vLangs[vLang]);
-                    vTmpDiv=this.newNode(vTmpCell, dateNode, dateId, null, dateText,  null, null, null, null, ['value', dateText]);
+                    vTmpDiv = this.draw_datepicker(vTaskList[i], 'gactualenddate', vTaskList[i].getActualEnd(), vTmpCell);
                 }
                 vNumRows++;
-
-                function drawDatePicker(task, idString) {
-                    var node;
-                    var id;
-                    if (task.getGroup() == 0) { //only leaf item could be edited
-                        id = 'datepicker_' + idString + '_' + task.getID();
-                        node = 'input';
-                    } else {
-                        id = '';
-                        node = 'div';
-                    }
-                    return {
-                        id: id,
-                        node: node
-                    };
-                }
             }
         }
 
@@ -1042,6 +1030,23 @@ JSGantt.GanttChart=function(pDiv, pFormat)
         this.newNode(vTmpDiv2, 'br');
 
         return vLeftTable;
+    };
+
+    this.draw_datepicker = function (task, idString, date, tmpCell) {
+        var node;
+        var id;
+        var dateText;
+        var tmpDiv;
+        if (task.getGroup() == 0) { //only leaf item could be edited
+            id = 'datepicker_' + idString + '_' + task.getID();
+            node = 'input';
+        } else {
+            id = '';
+            node = 'div';
+        }
+        dateText = JSGantt.formatDateStr(date, vDateTaskTableDisplayFormat, vLangs[vLang]);
+        tmpDiv = this.newNode(tmpCell, node, id, null, dateText,  null, null, null, null, ['value', dateText]);
+        return tmpDiv;
     };
 
     this.draw_right_header = function() {
@@ -1581,7 +1586,6 @@ JSGantt.GanttChart=function(pDiv, pFormat)
         var updatedDate;
         var tdClassName;
         if (parentId == 0) return;
-        var parentChartRowId = vDivId+'child_'+ parentId;
         for (var i = 0; i < vTaskList.length; i++) {
             if (vTaskList[i].getID() == parentId) {
                 var parent = vTaskList[i];
@@ -1592,25 +1596,26 @@ JSGantt.GanttChart=function(pDiv, pFormat)
                     }
                 }
 
-                if (dateString === 'planstart') {
+                if (dateString === 'gstartdate' || dateString === 'genddate') {
                     tdClassName = 'gstartdate';
                     updatedDate = findMinDate(children);
                     parent.setStart(updatedDate);
-                } else if (dateString === 'planend') {
+                    this.update_chart_date(null, parentId, tdClassName, updatedDate);
                     tdClassName = 'genddate';
                     updatedDate = findMaxDate(children);
                     parent.setEnd(updatedDate);
-                } else if (dateString === 'actualstart') {
+                    this.update_chart_date(null, parentId, tdClassName, updatedDate);
+                } else if (dateString === 'gactualstartdate' || dateString === 'gactualenddate') {
                     tdClassName = 'gactualstartdate';
                     updatedDate = findMinActualDate(children);
                     parent.setActualStart(updatedDate);
-                } else if (dateString === 'actualend') {
+                    this.update_chart_date(null, parentId, tdClassName, updatedDate);
                     tdClassName = 'gactualenddate';
                     updatedDate = findMaxActualDate(children);
                     parent.setActualEnd(updatedDate);
+                    this.update_chart_date(null, parentId, tdClassName, updatedDate);
                 }
                 this.redraw_bar(parent);
-                this.update_chart_date(parentChartRowId, tdClassName, updatedDate);
                 this.redraw_parent_bar(parent, updatedDate, dateString);
                 return;
             }
@@ -1681,8 +1686,9 @@ JSGantt.GanttChart=function(pDiv, pFormat)
         }
     };
 
-    this.update_chart_date = function(chartId, className, updatedDate) {
-        var chartRow = document.getElementById(chartId);
+    this.update_chart_date = function(task, chartRowId, className, updatedDate) {
+        var rowId = vDivId+'child_'+ chartRowId;
+        var chartRow = document.getElementById(rowId);
         var childNodes = chartRow.childNodes;
         var dateDiv;
         var formatDate = JSGantt.formatDateStr(updatedDate, vDateTaskTableDisplayFormat, vLangs[vLang]);
@@ -1690,7 +1696,16 @@ JSGantt.GanttChart=function(pDiv, pFormat)
             if (childNodes[i].className == className) {
                 var oldDate = childNodes[i].childNodes[0];
                 childNodes[i].removeChild(oldDate);
-                dateDiv = JSGantt.newNode(childNodes[i], 'div', null, null, formatDate, null, null, null, null, ['value', formatDate]);
+                if (task) {
+                    //initPikday;
+                    var dateId = 'datepicker_' + className + '_' + task.getID();
+                    var dateNode = 'input';
+                    dateDiv = this.newNode(childNodes[i], dateNode, dateId, null, formatDate,  null, null, null, null, ['value', formatDate]);
+                    this.initPikDay(task, formatDate, className, this);
+                } else {
+                    //
+                    dateDiv = this.newNode(childNodes[i], 'div', null, null, formatDate, null, null, null, null, ['value', formatDate]);
+                }
                 return;
             }
         }
@@ -1882,66 +1897,6 @@ JSGantt.GanttChart=function(pDiv, pFormat)
         return vTask;
     };
     if (vDiv && vDiv.nodeName.toLowerCase()=='div') vDivId=vDiv.id;
-
-    function createTaskInfo(pTask, plan, actual) {
-        var vTmpDiv;
-        var vTaskInfoBox=document.createDocumentFragment();
-        var vTaskInfo=JSGantt.newNode(vTaskInfoBox, 'div', null, 'gTaskInfo');
-        JSGantt.newNode(vTaskInfo, 'span', null, 'gTtTitle', pTask.getName());
-        if(vShowTaskInfoStartDate==1 && plan){
-            vTmpDiv=JSGantt.newNode(vTaskInfo, 'div', null, 'gTILine gTIsd');
-            JSGantt.newNode(vTmpDiv, 'span', null, 'gTaskLabel', vLangs[vLang]['startdate']+': ');
-            JSGantt.newNode(vTmpDiv, 'span', null, 'gTaskText', JSGantt.formatDateStr(pTask.getStart(), vDateTaskDisplayFormat,vLangs[vLang]));
-        }
-        if(vShowTaskInfoEndDate==1 && plan){
-            vTmpDiv=JSGantt.newNode(vTaskInfo, 'div', null, 'gTILine gTIed');
-            JSGantt.newNode(vTmpDiv, 'span', null, 'gTaskLabel', vLangs[vLang]['enddate']+': ');
-            JSGantt.newNode(vTmpDiv, 'span', null, 'gTaskText', JSGantt.formatDateStr(pTask.getEnd(), vDateTaskDisplayFormat,vLangs[vLang]));
-        }
-        if(vShowTaskInfoDur==1 && !pTask.getMile() && plan){
-            vTmpDiv=JSGantt.newNode(vTaskInfo, 'div', null, 'gTILine gTId');
-            JSGantt.newNode(vTmpDiv, 'span', null, 'gTaskLabel', vLangs[vLang]['duration']+': ');
-            JSGantt.newNode(vTmpDiv, 'span', null, 'gTaskText', pTask.getPlanDuration(vFormat, vLangs[vLang]));
-        }
-        if (actual) {
-            vTmpDiv=JSGantt.newNode(vTaskInfo, 'div', null, 'gTILine gTIasd');
-            JSGantt.newNode(vTmpDiv, 'br');
-            JSGantt.newNode(vTmpDiv, 'span', null, 'gTaskLabel', vLangs[vLang]['actualstartdate']+': ');
-            JSGantt.newNode(vTmpDiv, 'span', null, 'gTaskText', JSGantt.formatDateStr(pTask.getActualStart(), vDateTaskDisplayFormat,vLangs[vLang]));
-
-            vTmpDiv=JSGantt.newNode(vTaskInfo, 'div', null, 'gTILine gTIaed');
-            JSGantt.newNode(vTmpDiv, 'span', null, 'gTaskLabel', vLangs[vLang]['actualenddate']+': ');
-            JSGantt.newNode(vTmpDiv, 'span', null, 'gTaskText', JSGantt.formatDateStr(pTask.getActualEnd(), vDateTaskDisplayFormat,vLangs[vLang]));
-        }
-        if(vShowTaskInfoDur==1 && !pTask.getMile() && actual){
-            vTmpDiv=JSGantt.newNode(vTaskInfo, 'div', null, 'gTILine gTId');
-            var actualDuration = pTask.getActualDuration(vFormat, vLangs[vLang]) ? pTask.getActualDuration(vFormat, vLangs[vLang]) : '-';
-            JSGantt.newNode(vTmpDiv, 'span', null, 'gTaskLabel', vLangs[vLang]['duration']+': ');
-            JSGantt.newNode(vTmpDiv, 'span', null, 'gTaskText', actualDuration);
-        }
-        if(vShowTaskInfoComp==1){
-            vTmpDiv=JSGantt.newNode(vTaskInfo, 'div', null, 'gTILine gTIc');
-            JSGantt.newNode(vTmpDiv, 'span', null, 'gTaskLabel', vLangs[vLang]['completion']+': ');
-            JSGantt.newNode(vTmpDiv, 'span', null, 'gTaskText', pTask.getCompStr());
-        }
-        if(vShowTaskInfoRes==1){
-            vTmpDiv=JSGantt.newNode(vTaskInfo, 'div', null, 'gTILine gTIr');
-            JSGantt.newNode(vTmpDiv, 'span', null, 'gTaskLabel', vLangs[vLang]['resource']+': ');
-            JSGantt.newNode(vTmpDiv, 'span', null, 'gTaskText', pTask.getResource());
-        }
-        if(vShowTaskInfoLink==1 && pTask.getLink()!=''){
-            vTmpDiv=JSGantt.newNode(vTaskInfo, 'div', null, 'gTILine gTIl');
-            var vTmpNode=JSGantt.newNode(vTmpDiv, 'span', null, 'gTaskLabel');
-            vTmpNode=JSGantt.newNode(vTmpNode, 'a', null, 'gTaskText', vLangs[vLang]['moreinfo']);
-            vTmpNode.setAttribute('href',pTask.getLink());
-        }
-        if(vShowTaskInfoNotes==1){
-            vTmpDiv=JSGantt.newNode(vTaskInfo, 'div', null, 'gTILine gTIn');
-            JSGantt.newNode(vTmpDiv, 'span', null, 'gTaskLabel', vLangs[vLang]['notes']+': ');
-            if(pTask.getNotes())vTmpDiv.appendChild(pTask.getNotes());
-        }
-        return vTaskInfoBox;
-    }
 
 }; //GanttChart
 
