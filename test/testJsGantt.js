@@ -600,6 +600,7 @@ JSGantt.GanttChart=function(pDiv, pFormat)
     this.clearDependencies=function()
     {
         var parent=this.getLines();
+        if (!parent) return;
         while(parent.hasChildNodes())parent.removeChild(parent.firstChild);
         vDepId=1;
     };
@@ -795,17 +796,19 @@ JSGantt.GanttChart=function(pDiv, pFormat)
 
         while(vDiv.hasChildNodes())vDiv.removeChild(vDiv.firstChild);
         vTmpDiv=this.newNode(vDiv, 'div', null, 'gchartcontainer');
-        vTmpDiv.appendChild(vRightHeader);
-        vTmpDiv.appendChild(vLeftHeader);
-        vTmpDiv.appendChild(vRightTable);
-        vTmpDiv.appendChild(vLeftTable);
+        vTmpDiv2=this.newNode(vTmpDiv, 'div', null, 'gListTableContainer');
+        vTmpDiv2.appendChild(vLeftHeader);
+        vTmpDiv2.appendChild(vLeftTable);
+        vTmpDiv2=this.newNode(vTmpDiv, 'div', null, 'gChartTableContainer');
+        vTmpDiv2.appendChild(vRightHeader);
+        vTmpDiv2.appendChild(vRightTable);
 
         //hide unnecessary data:
 
         this.newNode(vTmpDiv, 'div', null, 'ggridfooter');
-        vTmpDiv2=this.newNode(this.getChartBody(), 'div', vDivId+'Lines', 'glinediv');
-        vTmpDiv2.style.visibility='hidden';
-        this.setLines(vTmpDiv2);
+        // vTmpDiv2=this.newNode(this.getChartBody(), 'div', vDivId+'Lines', 'glinediv');
+        // vTmpDiv2.style.visibility='hidden';
+        // this.setLines(vTmpDiv2);
 
         initAllPikDay(this);
         /* Quick hack to show the generated HTML on older browsers - add a '/' to the begining of this line to activate
@@ -1026,9 +1029,8 @@ JSGantt.GanttChart=function(pDiv, pFormat)
 
         // Add some white space so the vertical scroll distance should always be greater
         // than for the right pane (keep to a minimum as it is seen in unconstrained height designs)
-        this.newNode(vTmpDiv2, 'br');
-        this.newNode(vTmpDiv2, 'br');
-
+        // this.newNode(vTmpDiv2, 'br');
+        // this.newNode(vTmpDiv2, 'br');
         return vLeftTable;
     };
 
@@ -1218,7 +1220,7 @@ JSGantt.GanttChart=function(pDiv, pFormat)
         if(vUseSingleCell!=0 && vUseSingleCell<(vNumCols*vNumRows))vSingleCell=true;
 
         this.newNode(vTmpDiv, 'div', null, 'rhscrpad', null, null, vTaskLeftPx+1);
-
+        this.newNode(vRightHeader, 'div', null, 'glabelfooter');
         return vRightHeader;
     };
 
@@ -1272,6 +1274,7 @@ JSGantt.GanttChart=function(pDiv, pFormat)
 
         vID = task.getID();
         var vComb=(task.getParItem() && task.getParItem().getGroup()==2);
+        console.log(vComb);
         var vCellFormat='';
 
         var vTmpItem = task;
@@ -1585,7 +1588,17 @@ JSGantt.GanttChart=function(pDiv, pFormat)
         var parentId = task.getParent();
         var updatedDate;
         var tdClassName;
-        if (parentId == 0) return;
+        if (parentId == 0) {
+            var redrawMinDate = JSGantt.getMinDate(vTaskList, vFormat);
+            var redrawMaxDate = JSGantt.getMaxDate(vTaskList, vFormat);
+            if (redrawMinDate.getTime() < vMinDate.getTime()) {
+                this.Draw();
+            }
+            if (redrawMaxDate.getTime() > vMaxDate.getTime()) {
+                this.Draw();
+            }
+            return;
+        }
         for (var i = 0; i < vTaskList.length; i++) {
             if (vTaskList[i].getID() == parentId) {
                 var parent = vTaskList[i];

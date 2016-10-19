@@ -1,15 +1,47 @@
-/*.gchartcontainer {*/
-    /*width: 100%;*/
-    /*padding: 0;*/
-/*}*/
 
-/*.listContainer {*/
-    /*float: left;*/
-/*}*/
+.gchartcontainer {
+    padding: 0;
+    overflow-y: auto;
+}
 
-/*.chartContainer {*/
-    /*float: left;*/
-/*}*/
+.gchartcontainer:after {
+    visibility: hidden;
+    display: block;
+    font-size: 0;
+    content: " ";
+    clear: both;
+    height: 0;
+}
+
+.gListTableContainer {
+    width: 40%;
+    float: left;
+    overflow-x: auto;
+}
+
+.gChartTableContainer {
+    width: 60%;
+    float: left;
+    overflow-x: auto;
+}
+
+.gchartgrid {
+    overflow: hidden;
+}
+
+.glistgrid,
+.glistlbl {
+    padding: 0;
+    width: auto;
+    margin: 0;
+    right: 0;
+}
+
+.gchartgrid,
+.gchartlbl {
+    width: auto;
+    padding: 0;
+}
 
 /* Task list defaults */
 .gactualstartdate,
@@ -63,9 +95,12 @@
 }
 
 .gtaskname div, .gtaskname {
-    min-width: 120px;
-    max-width: 120px;
-    width: 120px;
+    min-width: 160px;
+    max-width: 160px;
+    width: 160px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
 }
 
 .gtaskheading, .gname, .gtaskname, .gresource, .gduration, .gpccomplete, .gstartdate, .genddate .gactualstartdate, .gactualenddate {

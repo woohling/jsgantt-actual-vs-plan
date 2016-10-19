@@ -40,14 +40,18 @@
         minDate: new Date(2000, 0, 1),
         maxDate: new Date(2020, 12, 31),
         yearRange: [2000,2020],
-        onSelect: function() {
-            var date = document.createTextNode(this.getMoment().format('Do MMMM YYYY') + ' ');
-            document.getElementById('selected').appendChild(date);
+        onSelect: function(date) {
+            console.log(date);
+//            var date = document.createTextNode(this.getMoment().format('Do MMMM YYYY') + ' ');
+//            document.getElementById('selected').appendChild(date);
+        },
+        onClose: function (date) {
+            console.log(date);
         }
     });
-    
+
     picker.setMoment(moment().dayOfYear(366));
-    
+
     </script>
 </body>
 </html>
